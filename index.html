@@ -355,7 +355,7 @@
                         const fileData = {
                             name: file.name,
                             type: file.type,
-                            base64: e.target.result.split(',')[1] // Pega apenas a parte base64
+                            base64: e.target.result.split(',')[1]
                         };
                         sendData(form, fileData);
                     };
@@ -365,13 +365,12 @@
                     }
                     reader.readAsDataURL(file);
                 } else {
-                    sendData(form, null); // Envia sem arquivo
+                    sendData(form, null);
                 }
             }
             
             async function sendData(form, fileData) {
                 const formData = new FormData(form);
-                // Remove o arquivo do FormData para não ser enviado duas vezes
                 if(fileData) formData.delete('logo'); 
                 const data = Object.fromEntries(formData.entries());
 
@@ -381,38 +380,28 @@
                 try {
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Importante para evitar o erro de CORS inicial
-                        cache: 'no-cache',
-                        redirect: 'follow',
                         body: JSON.stringify(payload),
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' } // Usar text/plain para bypass
+                        // Removido o 'no-cors' e 'text/plain' para permitir a leitura da resposta
+                        headers: { 'Content-Type': 'application/json' }
                     });
-                    
-                    // Com no-cors, não podemos ler a resposta, então redirecionamos para uma página de sucesso
-                    const modalContent = form.parentElement;
-                    modalContent.innerHTML = `<div class="p-8 text-center"><h3 class="text-2xl font-bold text-primary mb-4">Obrigado!</h3><p class="text-muted-foreground">Sua solicitação foi enviada. Você será redirecionado para o pagamento em instantes.</p></div>`;
 
-                    // Criar o link de pagamento do lado do cliente para contornar o problema de resposta
-                    const prices = { "Ouro": 750, "Prata": 450, "Bronze": 150, "Completo": 100, "Básico": 55 };
-                    const key = data.tier || data.kit; // 'tier' para patrocínio, 'kit' para inscrição
-                    const value = prices[key];
-                    const description = formType === 'sponsorship' ? `Patrocínio Cota ${data.tier}` : `Inscrição Kit ${data.kit}`;
-                    const customerName = data.contactName || data.fullName;
-                    
-                    // Simula a criação do link para redirecionar (o link real é criado no backend)
-                    // Para uma solução mais robusta, o backend deveria retornar o link, mas no-cors impede
-                    setTimeout(() => {
-                         // Idealmente, aqui você faria uma segunda chamada para buscar o link de pagamento
-                         // Por enquanto, vamos simular uma página de "obrigado"
-                        console.log("Redirecionamento simulado para pagamento.");
-                        showError(form, "Função de pagamento em desenvolvimento. Sua inscrição foi salva!");
+                    if (!response.ok) {
+                       const errorText = await response.text();
+                       throw new Error(`Erro do servidor: ${response.status} ${errorText}`);
+                    }
 
-                    }, 3000);
+                    const result = await response.json();
 
-
+                    if (result.status === 'success' && result.paymentUrl) {
+                        const modalContent = form.parentElement;
+                        modalContent.innerHTML = `<div class="p-8 text-center"><h3 class="text-2xl font-bold text-primary mb-4">Obrigado!</h3><p class="text-muted-foreground">Sua solicitação foi enviada. Redirecionando para o pagamento...</p></div>`;
+                        window.location.href = result.paymentUrl;
+                    } else {
+                        throw new Error(result.message || 'O servidor retornou uma resposta inesperada.');
+                    }
                 } catch (error) {
                     console.error('Erro ao submeter formulário:', error);
-                    showError(form, 'Ocorreu um erro inesperado ao enviar os dados.');
+                    showError(form, error.message);
                 }
             }
             
