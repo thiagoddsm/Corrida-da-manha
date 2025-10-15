@@ -280,6 +280,7 @@
                         <form id="registration-form">
                             <div class="space-y-4">
                                 <div><label for="fullName" class="block text-sm font-medium">Nome Completo</label><input type="text" id="fullName" name="fullName" required class="w-full mt-1 p-2 border rounded-md bg-transparent border-border focus:ring-2 focus:ring-ring"></div>
+                                <div><label for="age" class="block text-sm font-medium">Idade</label><input type="number" id="age" name="age" required class="w-full mt-1 p-2 border rounded-md bg-transparent border-border focus:ring-2 focus:ring-ring"></div>
                                 <div><label for="cpf" class="block text-sm font-medium">CPF</label><input type="text" id="cpf" name="cpf" required class="w-full mt-1 p-2 border rounded-md bg-transparent border-border focus:ring-2 focus:ring-ring"></div>
                                 <div><label for="email" class="block text-sm font-medium">E-mail</label><input type="email" id="email" name="email" required class="w-full mt-1 p-2 border rounded-md bg-transparent border-border focus:ring-2 focus:ring-ring"></div>
                                 <div><label for="phone" class="block text-sm font-medium">Telefone (WhatsApp)</label><input type="tel" id="phone" name="phone" class="w-full mt-1 p-2 border rounded-md bg-transparent border-border focus:ring-2 focus:ring-ring"></div>
@@ -381,7 +382,6 @@
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify(payload),
-                        // Removido o 'no-cors' e 'text/plain' para permitir a leitura da resposta
                         headers: { 'Content-Type': 'application/json' }
                     });
 
